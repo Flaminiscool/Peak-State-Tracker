@@ -1,5 +1,5 @@
 import { useStore } from '@/hooks/use-store';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -18,6 +18,7 @@ export function HabitsTab() {
     days.push(d.toISOString().split('T')[0]);
   }
   const todayStr = new Date().toISOString().split('T')[0];
+  const totalDoneToday = data.habits.filter(h => h.history[todayStr]).length;
 
   const handleAdd = () => {
     if (!newName.trim()) return;
@@ -25,8 +26,6 @@ export function HabitsTab() {
     setNewName('');
     setAddOpen(false);
   };
-
-  const totalDoneToday = data.habits.filter(h => h.history[todayStr]).length;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -64,71 +63,72 @@ export function HabitsTab() {
 
       {data.habits.length === 0 && (
         <div className="text-center py-20 text-muted-foreground font-mono text-sm">
-          No habits yet. Add one to start tracking.
+          No habits yet. Add one to start your streak.
         </div>
       )}
 
       {/* Heatmap grid */}
-      <Card className="bg-card/50 border-border overflow-hidden">
-        <div className="overflow-x-auto p-6">
-          <div className="min-w-[580px]">
-            <div className="flex mb-4">
-              <div className="w-52 shrink-0 font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Habit</div>
-              <div className="flex-1 flex justify-between px-0.5">
-                {days.filter((_, i) => i % 5 === 0).map(d => (
-                  <div key={d} className="text-[9px] text-muted-foreground font-mono">{d.slice(5)}</div>
-                ))}
+      {data.habits.length > 0 && (
+        <Card className="bg-card/50 border-border overflow-hidden">
+          <div className="overflow-x-auto p-6">
+            <div className="min-w-[560px]">
+              <div className="flex mb-3">
+                <div className="w-48 shrink-0 text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Habit</div>
+                <div className="flex-1 flex justify-between px-0.5">
+                  {days.filter((_, i) => i % 5 === 0).map(d => (
+                    <div key={d} className="text-[9px] text-muted-foreground font-mono">{d.slice(5)}</div>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="space-y-3">
-              {data.habits.map(h => (
-                <div key={h.id} className="flex items-center gap-3">
-                  <div className="w-52 shrink-0 flex justify-between items-center">
-                    <span className="text-sm font-medium truncate pr-2">{h.name}</span>
-                    <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground shrink-0">
-                      <Flame size={11} className="text-orange-500" />
-                      {h.streak}
+              <div className="space-y-2.5">
+                {data.habits.map(h => (
+                  <div key={h.id} className="flex items-center gap-3">
+                    <div className="w-48 shrink-0 flex items-center justify-between">
+                      <span className="text-sm font-medium truncate pr-2">{h.name}</span>
+                      <div className="flex items-center gap-1 text-xs font-mono text-muted-foreground shrink-0">
+                        <Flame size={11} className="text-orange-500" />
+                        {h.streak}
+                      </div>
+                    </div>
+                    <div className="flex-1 flex gap-0.5">
+                      {days.map(d => {
+                        const isDone = h.history[d];
+                        const isToday = d === todayStr;
+                        return (
+                          <button
+                            key={d}
+                            data-testid={`habit-cell-${h.id}-${d}`}
+                            onClick={() => toggleHabit(h.id, d)}
+                            className={`h-5 flex-1 rounded-sm transition-all ${
+                              isDone
+                                ? 'bg-primary hover:bg-primary/70'
+                                : isToday
+                                ? 'bg-muted border border-dashed border-primary/60 hover:border-primary'
+                                : 'bg-muted/40 hover:bg-muted'
+                            }`}
+                            title={`${d}: ${isDone ? 'Done' : 'Missed'}`}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
-                  <div className="flex-1 flex gap-0.5">
-                    {days.map(d => {
-                      const isDone = h.history[d];
-                      const isToday = d === todayStr;
-                      return (
-                        <button
-                          key={d}
-                          data-testid={`habit-cell-${h.id}-${d}`}
-                          onClick={() => toggleHabit(h.id, d)}
-                          className={`h-5 flex-1 rounded-sm transition-all ${
-                            isDone
-                              ? 'bg-primary hover:bg-primary/80'
-                              : isToday
-                              ? 'bg-muted border border-dashed border-primary/50 hover:border-primary'
-                              : 'bg-muted/40 hover:bg-muted'
-                          }`}
-                          title={`${d}: ${isDone ? 'Done' : 'Missed'}`}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 mt-4 text-[10px] font-mono text-muted-foreground">
-              <div className="flex gap-0.5">
-                <div className="w-3 h-3 rounded-sm bg-muted/40" />
-                <div className="w-3 h-3 rounded-sm bg-primary/40" />
-                <div className="w-3 h-3 rounded-sm bg-primary" />
+                ))}
               </div>
-              <span>Less — More</span>
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-mono text-muted-foreground">
+                <div className="flex gap-0.5 items-center">
+                  <div className="w-3 h-3 rounded-sm bg-muted/40" />
+                  <div className="w-3 h-3 rounded-sm bg-primary/60" />
+                  <div className="w-3 h-3 rounded-sm bg-primary" />
+                </div>
+                <span>Less → More</span>
+                <span className="ml-3 opacity-60">Dashed border = today</span>
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
-      {/* Habit cards — today's check-ins */}
+      {/* Today's check-in cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {data.habits.map(h => {
           const isDoneToday = h.history[todayStr];
@@ -137,13 +137,11 @@ export function HabitsTab() {
               key={`card-${h.id}`}
               data-testid={`card-habit-${h.id}`}
               className={`p-4 border rounded-lg transition-all ${
-                isDoneToday
-                  ? 'border-primary bg-primary/8'
-                  : 'border-border bg-card/50 hover:border-primary/40'
+                isDoneToday ? 'border-primary bg-primary/5' : 'border-border bg-card/50 hover:border-primary/30'
               }`}
             >
-              <div className="flex justify-between items-start">
-                <span className="font-bold text-sm leading-tight pr-2">{h.name}</span>
+              <div className="flex justify-between items-start gap-2">
+                <span className="font-bold text-sm leading-tight">{h.name}</span>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     data-testid={`button-toggle-habit-${h.id}`}
@@ -163,12 +161,9 @@ export function HabitsTab() {
                   </button>
                 </div>
               </div>
-              <div className="text-xs font-mono text-muted-foreground mt-2 flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <Flame size={11} className="text-orange-500" />
-                  {h.streak} streak
-                </span>
-                <span>Best: {h.bestStreak}</span>
+              <div className="text-xs font-mono text-muted-foreground mt-2 flex items-center gap-1">
+                <Flame size={11} className="text-orange-500" />
+                <span>{h.streak} day streak</span>
               </div>
             </div>
           );
