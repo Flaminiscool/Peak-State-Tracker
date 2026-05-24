@@ -36,9 +36,7 @@ export function HealthTab() {
         </div>
         <div className="flex gap-2">
           {(['sleep', 'hydration', 'journal'] as HealthView[]).map(v => (
-            <Button key={v} variant={view === v ? 'default' : 'outline'} size="sm" className="font-mono text-xs uppercase" onClick={() => setView(v)}>
-              {v}
-            </Button>
+            <Button key={v} variant={view === v ? 'default' : 'outline'} size="sm" className="font-mono text-xs uppercase" onClick={() => setView(v)}>{v}</Button>
           ))}
         </div>
       </header>
@@ -63,12 +61,6 @@ function SleepView({ data, addSleep }: { data: any; addSleep: any }) {
     return +h.toFixed(1);
   };
 
-  const handleLog = () => {
-    const hours = calcHours();
-    const label = new Date(date).toLocaleDateString('en-AU', { weekday: 'short' });
-    addSleep({ date, label, hours });
-  };
-
   const last7 = data.sleep.slice(-7);
 
   return (
@@ -77,7 +69,7 @@ function SleepView({ data, addSleep }: { data: any; addSleep: any }) {
         <CardHeader><CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Sleep — Recent History</CardTitle></CardHeader>
         <CardContent>
           {last7.length === 0 ? (
-            <p className="text-muted-foreground text-sm font-mono py-4">No sleep logged yet. Start tracking below.</p>
+            <p className="text-muted-foreground text-sm font-mono py-4">No sleep logged yet.</p>
           ) : (
             <>
               <div className="h-52 w-full">
@@ -90,11 +82,9 @@ function SleepView({ data, addSleep }: { data: any; addSleep: any }) {
                 </ResponsiveContainer>
               </div>
               <div className="flex gap-6 mt-4">
-                {[
-                  ['Avg', (last7.reduce((s: number, e: any) => s + e.hours, 0) / last7.length).toFixed(1) + 'h'],
+                {[['Avg', (last7.reduce((s: number, e: any) => s + e.hours, 0) / last7.length).toFixed(1) + 'h'],
                   ['Best', Math.max(...last7.map((e: any) => e.hours)) + 'h'],
-                  ['Least', Math.min(...last7.map((e: any) => e.hours)) + 'h'],
-                ].map(([label, val]) => (
+                  ['Least', Math.min(...last7.map((e: any) => e.hours)) + 'h']].map(([label, val]) => (
                   <div key={label}>
                     <div className="text-xl font-mono font-bold">{val}</div>
                     <div className="text-[10px] text-muted-foreground font-mono uppercase">{label}</div>
@@ -112,19 +102,19 @@ function SleepView({ data, addSleep }: { data: any; addSleep: any }) {
           <div className="space-y-1"><label className="text-[10px] font-mono text-muted-foreground uppercase">Date</label><Input type="date" value={date} onChange={e => setDate(e.target.value)} className="font-mono text-xs" /></div>
           <div className="space-y-1"><label className="text-[10px] font-mono text-muted-foreground uppercase">Bedtime</label><Input type="time" value={bedtime} onChange={e => setBedtime(e.target.value)} className="font-mono text-xs" /></div>
           <div className="space-y-1"><label className="text-[10px] font-mono text-muted-foreground uppercase">Wake</label><Input type="time" value={waketime} onChange={e => setWaketime(e.target.value)} className="font-mono text-xs" /></div>
-          <Button className="font-mono uppercase text-xs" onClick={handleLog}>Log {calcHours()}h</Button>
+          <Button className="font-mono uppercase text-xs" onClick={() => addSleep({ date, label: new Date(date).toLocaleDateString('en-AU', { weekday: 'short' }), hours: calcHours() })}>Log {calcHours()}h</Button>
         </CardContent>
       </Card>
 
       <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/20 rounded-lg p-3 border border-border/40">
         <Info size={13} className="mt-0.5 shrink-0 text-primary/60" />
-        <span>Fitbit Inspire sync requires OAuth access via Fitbit's developer portal. Log manually above — data saves locally.</span>
+        <span>Fitbit Inspire sync requires OAuth — log manually above. Data saves to this device only.</span>
       </div>
     </div>
   );
 }
 
-function HydrationView({ data, addDrink, removeDrink, setHydrationGoal }: { data: any; addDrink: any; removeDrink: any; setHydrationGoal: any }) {
+function HydrationView({ data, addDrink, removeDrink, setHydrationGoal }: any) {
   const [customName, setCustomName] = useState('');
   const [customAmt, setCustomAmt] = useState('');
   const [goalEdit, setGoalEdit] = useState(false);
@@ -135,7 +125,6 @@ function HydrationView({ data, addDrink, removeDrink, setHydrationGoal }: { data
   const totalMl = todayLog.logs.reduce((s: number, l: any) => s + l.amount, 0);
   const pct = Math.min(100, Math.round((totalMl / data.hydrationGoal) * 100));
 
-  // Recommended: 2–2.5L for a 15-year-old
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -143,9 +132,7 @@ function HydrationView({ data, addDrink, removeDrink, setHydrationGoal }: { data
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Today's Hydration</CardTitle>
-              <button onClick={() => setGoalEdit(g => !g)} className="text-[10px] font-mono text-muted-foreground hover:text-foreground">
-                Goal: {data.hydrationGoal}ml
-              </button>
+              <button onClick={() => setGoalEdit(g => !g)} className="text-[10px] font-mono text-muted-foreground hover:text-foreground">Goal: {data.hydrationGoal}ml</button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -163,9 +150,7 @@ function HydrationView({ data, addDrink, removeDrink, setHydrationGoal }: { data
               <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
               </div>
-              <div className="text-[10px] font-mono text-muted-foreground mt-1">
-                Daily goal: {data.hydrationGoal}ml · Recommended for teens: 2000–2500ml
-              </div>
+              <div className="text-[10px] font-mono text-muted-foreground mt-1">Goal: {data.hydrationGoal}ml · Recommended for 15yo: 2000–2500ml</div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {todayLog.logs.length === 0 && <p className="text-xs font-mono text-muted-foreground">Nothing logged yet today.</p>}
@@ -178,9 +163,7 @@ function HydrationView({ data, addDrink, removeDrink, setHydrationGoal }: { data
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <span className="font-mono text-xs">{l.time}</span>
-                    <button onClick={() => removeDrink(l.id)} className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-all">
-                      <Trash2 size={11} />
-                    </button>
+                    <button onClick={() => removeDrink(l.id)} className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"><Trash2 size={11} /></button>
                   </div>
                 </div>
               ))}
@@ -225,7 +208,9 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
   const [viewMode, setViewMode] = useState<'write' | 'browse'>('write');
   const [videoUrl, setVideoUrl] = useState('');
   const [videoTitle, setVideoTitle] = useState('');
+  const [videoFileError, setVideoFileError] = useState('');
   const imageRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
 
   const existingEntry: JournalEntry | undefined = data.journal.find((j: JournalEntry) => j.date === selectedDate);
   const [form, setForm] = useState({
@@ -258,11 +243,31 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     Array.from(e.target.files || []).forEach(file => {
-      if (file.size > 800 * 1024) { alert(`"${file.name}" is over 800KB. Please compress it first.`); return; }
+      if (file.size > 800 * 1024) { alert(`"${file.name}" is over 800KB — please compress first.`); return; }
       const reader = new FileReader();
       reader.onload = ev => setForm(f => ({ ...f, media: [...f.media, { type: 'image', data: ev.target?.result as string }] }));
       reader.readAsDataURL(file);
     });
+    e.target.value = '';
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoFileError('');
+    if (file.size > 20 * 1024 * 1024) {
+      setVideoFileError('Video is over 20MB. Try a smaller clip or use a link instead.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setVideoFileError(`Large file (${(file.size / 1024 / 1024).toFixed(1)}MB). It will be stored but may hit browser storage limits.`);
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      setForm(f => ({ ...f, media: [...f.media, { type: 'video-file', data: ev.target?.result as string, title: file.name }] }));
+    };
+    reader.readAsDataURL(file);
     e.target.value = '';
   };
 
@@ -274,7 +279,6 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
   };
 
   const removeMedia = (i: number) => setForm(f => ({ ...f, media: f.media.filter((_: JournalMedia, idx: number) => idx !== i) }));
-
   const handleSave = () => saveJournalEntry({ date: selectedDate, ...form });
 
   const MOOD_LABELS: Record<number, string> = { 1: 'Rough', 2: 'Meh', 3: 'Okay', 4: 'Good', 5: 'Great' };
@@ -296,9 +300,7 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
               <button key={e} onClick={() => setFilterEmotion(filterEmotion === e ? null : e)} className={`px-3 py-1 rounded-full text-xs font-mono border transition-colors ${filterEmotion === e ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50'}`}>{e}</button>
             ))}
           </div>
-
           {filteredEntries.length === 0 && <p className="text-center py-12 text-muted-foreground font-mono text-sm">No entries yet — start writing!</p>}
-
           <div className="space-y-3">
             {filteredEntries.map((j: JournalEntry) => (
               <Card key={j.id} className="bg-card/50 border-border hover:border-primary/30 cursor-pointer transition-colors" onClick={() => { handleDateChange(j.date); setViewMode('write'); }}>
@@ -339,18 +341,13 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
             </div>
 
             {[
-              { key: 'events', label: "Today's Events", placeholder: "What happened today? Key moments, conversations, things that stood out..." },
-              { key: 'growth', label: 'Growth & Learning', placeholder: 'What did you learn? What could you do better? Any wins?' },
-              { key: 'plan', label: "Tomorrow's Plan", placeholder: "What are the 3 most important things for tomorrow?" },
+              { key: 'events', label: "Today's Events", placeholder: "What happened? Key moments, conversations, highlights..." },
+              { key: 'growth', label: 'Growth & Learning', placeholder: 'What did you learn? What could you do better? Wins?' },
+              { key: 'plan', label: "Tomorrow's Plan", placeholder: "Top 3 things to do tomorrow?" },
             ].map(({ key, label, placeholder }) => (
               <div key={key}>
                 <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">{label}</label>
-                <Textarea
-                  placeholder={placeholder}
-                  className="mt-1.5 h-24 text-sm bg-background/50 resize-none"
-                  value={(form as any)[key]}
-                  onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                />
+                <Textarea placeholder={placeholder} className="mt-1.5 h-24 text-sm bg-background/50 resize-none" value={(form as any)[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
               </div>
             ))}
 
@@ -360,7 +357,7 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
           <div className="space-y-4">
             {/* Mood */}
             <Card className="bg-card/50 border-border">
-              <CardHeader className="pb-2"><CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">How are you feeling?</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Mood & Emotions</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <div className="text-sm font-bold mb-2">{MOOD_LABELS[form.mood]}</div>
@@ -373,7 +370,6 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
                     ))}
                   </div>
                 </div>
-
                 <div>
                   <div className="text-[10px] font-mono text-muted-foreground uppercase mb-2">Emotions</div>
                   <div className="flex flex-wrap gap-1.5">
@@ -399,29 +395,35 @@ function JournalView({ data, saveJournalEntry }: { data: any; saveJournalEntry: 
             <Card className="bg-card/50 border-border">
               <CardHeader className="pb-2"><CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Photos & Videos</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                {/* Images */}
                 <input type="file" ref={imageRef} accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
+                <input type="file" ref={videoRef} accept="video/*" className="hidden" onChange={handleVideoUpload} />
+
                 <Button variant="outline" size="sm" className="w-full text-xs font-mono uppercase gap-1" onClick={() => imageRef.current?.click()}>
-                  <Image size={12} /> Add Photo (max 800KB)
+                  <Image size={12} /> Upload Photo (max 800KB)
                 </Button>
 
-                {/* Videos */}
+                <Button variant="outline" size="sm" className="w-full text-xs font-mono uppercase gap-1" onClick={() => { setVideoFileError(''); videoRef.current?.click(); }}>
+                  <Video size={12} /> Upload Video File (max 20MB)
+                </Button>
+                {videoFileError && <p className="text-[10px] font-mono text-amber-500">{videoFileError}</p>}
+
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-mono text-muted-foreground">Video link (YouTube, Google Photos, etc.)</p>
-                  <Input placeholder="https://youtube.com/..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="text-xs" />
+                  <p className="text-[10px] font-mono text-muted-foreground">Or paste a video link (YouTube, Google Photos, Drive…)</p>
+                  <Input placeholder="https://..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="text-xs" />
                   <Input placeholder="Title (optional)" value={videoTitle} onChange={e => setVideoTitle(e.target.value)} className="text-xs" />
                   <Button variant="outline" size="sm" className="w-full text-xs font-mono uppercase gap-1" onClick={addVideoLink}>
-                    <Video size={12} /> Add Video
+                    <Video size={12} /> Add Link
                   </Button>
                 </div>
 
-                {/* Media grid */}
                 {form.media.length > 0 && (
                   <div className="grid grid-cols-3 gap-1.5 mt-2">
                     {form.media.map((m: JournalMedia, i: number) => (
                       <div key={i} className="relative group aspect-square">
                         {m.type === 'image' ? (
                           <img src={m.data} alt="" className="w-full h-full rounded object-cover border border-border" />
+                        ) : m.type === 'video-file' ? (
+                          <video src={m.data} className="w-full h-full rounded object-cover border border-border" />
                         ) : (
                           <a href={m.url} target="_blank" rel="noopener noreferrer"
                             className="w-full h-full rounded border border-border bg-muted flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors">
